@@ -1,7 +1,8 @@
-# from astropy import coordinates as coord
-from datetime import datetime as dt
-from sgp4.earth_gravity import wgs72
-from sgp4.io import twoline2rv
+from datetime import datetime as dt  # for date and time
+from sgp4.earth_gravity import wgs72  # for gravity correction
+from sgp4.io import twoline2rv  # for reading TLE
+import requests  # for requesting json from web
+import json  # for parsing json files
 
 """
 line1 = ('1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753')
@@ -19,7 +20,7 @@ print(velocity)
 """
 
 
-def getTLE(filename):
+def get_TLE(filename):
     """
     input: file with TLE orbit parameters
     output: 2 lines for processing
@@ -33,7 +34,7 @@ def getTLE(filename):
     return line1, line2
 
 
-def getPosVel_curr(TLE):
+def get_sat_posvel_curr(TLE):
     """
     input: TLE parameters
     output: positions and velocities for satellite at current UTC time
@@ -42,6 +43,21 @@ def getPosVel_curr(TLE):
     line1, line2 = TLE
     satellite = twoline2rv(line1, line2, wgs72)
     currTime = dt.utcnow()
-    position, velocity = satellite.propagate(2000, 6, 29, 12, 50, 19)
+    position, velocity = satellite.propagate(currTime.year, currTime.month, currTime.day, currTime.hour, currTime.minute, currTime.second)
 
-    return
+    return position, velocity
+
+
+def get_position():
+    """
+    input: none
+    output: latitude, longitude
+    """
+
+    send_url = 'http://freegeoip.net/json'
+    r = requests.get(send_url)
+    j = json.loads(r.text)
+    lat = j['latitude']
+    lon = j['longitude']
+
+    return lat, lon
