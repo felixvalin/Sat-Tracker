@@ -13,9 +13,9 @@ print(satellite.error_message)
 """
 
 OBSERVER_ANGLE_ACCEPTABLE = 45
-LATITUDE_DEFAULT = 45
-LONGITUDE_DEFAULT = -75
-EARTH_RADIUS_KM = 6370
+LATITUDE_DEFAULT = 45.5
+LONGITUDE_DEFAULT = -73.6
+EARTH_RADIUS_KM = 6371
 
 
 def get_fromfile_TLE(filename):
@@ -44,7 +44,7 @@ def get_sat_posvel_curr(TLE):
     position, velocity = satellite.propagate(currTime.year, currTime.month, currTime.day, currTime.hour, currTime.minute, currTime.second)
 
     if satellite.error != 0:
-        return print("Satellite's position and velocity could not be found.")
+        return print(satellite.error_message)
 
     return position, velocity
 
@@ -64,7 +64,7 @@ def get_position():
     return lat, lon
 
 
-def longlat_to_RA_DEC(latitude, longitude):
+def RA_DEC_from_longlat(latitude, longitude):
     """
     input: lat long angles
     output: RA and DEC
@@ -86,27 +86,31 @@ def get_satellite_altitude(position):
     return np.sqrt(position[0]**2+position[1]**2+position[2]**2)
 
 
-def get_visible_area_radius(altitude):
+def get_visible_area_radius(position):
     """
     input: altitude and OBSERVER_ANGLE_ACCEPTABLE
     output: radius of visible area
     """
 
+    altitude = get_satellite_altitude(position)
+
     return np.tan(np.deg2rad(OBSERVER_ANGLE_ACCEPTABLE))*(altitude-EARTH_RADIUS_KM)
 
 
-def get_visible_area_angle(altitude):
+def get_visible_area_angle(position):
     """
     input: altitude of satellite
     output: angle of visible area from the center of the earth
     """
+
+    altitude = get_satellite_altitude(position)
 
     visibleRadius = get_visible_area_radius(altitude)
 
     return np.rad2deg(np.arctan(visibleRadius/altitude))
 
 
-def right_ascension(position):
+def RA_from_position(position):
     """
     input: position
     output: right ascension
@@ -115,7 +119,7 @@ def right_ascension(position):
     return np.arctan(position[1]/position[0])
 
 
-def declination(position):
+def DEC_from_position(position):
     """
     input: position
     output: declination
@@ -130,7 +134,7 @@ def RA_DEC_from_position(position):
     output: right ascension and declination
     """
 
-    return right_ascension(position), declination(position)
+    return RA_from_position(position), DEC_from_position(position)
 
 
 def angular_distance(position):
@@ -141,7 +145,7 @@ def angular_distance(position):
 
     # Retreive RA and DEC for both objects
     ra_sat, dec_sat = RA_DEC_from_position(position)
-    ra_obs, dec_obs = longlat_to_RA_DEC(get_position())
+    ra_obs, dec_obs = RA_DEC_from_longlat(get_position())
 
     # Converting from degrees to radians
     ra_sat, dec_sat, ra_obs, dec_obs = np.deg2rad([ra_sat, dec_sat, ra_obs, dec_obs])
@@ -153,13 +157,15 @@ def angular_distance(position):
     return np.arccos(angle1 + angle2)
 
 
-def is_observable(angle, altitude):
+def is_observable(position):
     """
     input: angular distance between observer's position and satellite
     output: Boolean smaller/larger than OBSERVER_ANGLE_ACCEPTABLE
         True if in the range
     """
 
-    visible_area_angle = get_visible_area_angle(altitude)
+    angle = angular_distance(position)
+
+    visible_area_angle = get_visible_area_angle(get_satellite_altitude(position))
 
     return angle < visible_area_angle
