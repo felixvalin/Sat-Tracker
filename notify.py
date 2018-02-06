@@ -1,13 +1,15 @@
 from twilio.rest import Client
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+# from email.MIMEMultipart import MIMEMultipart
+from email.mime.multipart import MIMEMultipart
+# from email.MIMEText import MIMEText
+from email.mime.text import MIMEText
 
 
-def send_email(subject, text):
+def send_email(subject, text, toaddr):
     fromaddr = "felixantoinevalin@gmail.com"
     pswd = "555987xilef"
-    toaddr = "felixantoinevalin@gmail.com"
+    # toaddr = "felixantoinevalin@gmail.com"
     msg = MIMEMultipart()
     msg['From'] = fromaddr
     msg['To'] = toaddr
@@ -23,7 +25,19 @@ def send_email(subject, text):
     server.sendmail(fromaddr, toaddr, text)
     server.quit()
 
-    return 0
+    return
+
+
+def send_simple_email(text, toaddr):
+    fromaddr = "felixantoinevalin@gmail.com"
+    pswd = "555987xilef"
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(fromaddr, pswd)
+
+    msg = text
+    server.sendmail(fromaddr, toaddr, msg)
+    server.quit()
 
 
 def send_fake_sms(text):
@@ -42,3 +56,7 @@ def send_sms(text):
 
     message = client.messages.create(to=felix_phone, from_=twilio_phone, body=text)
     return message
+
+
+sat_name = "The Humanity Star"
+send_email(sat_name, sat_name+" is no longer visible!", "felixantoinevalin@gmail.com")
