@@ -56,5 +56,5 @@ def send_sms(text):
     return message
 
 
-sat_name = "The Humanity Star"
-send_email(sat_name, sat_name+" is no longer visible!", "felixantoinevalin@gmail.com")
+# sat_name = "The Humanity Star"
+# send_email(sat_name, sat_name+" is no longer visible!", "felixantoinevalin@gmail.com")

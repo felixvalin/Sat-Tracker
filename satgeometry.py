@@ -19,9 +19,9 @@ def get_fromfile_TLE(filename):
     """
 
     f = open(filename, 'r')
-    name = f.read
-    line1 = f.read()
-    line2 = f.read()
+    name = f.readline()
+    line1 = f.readline()
+    line2 = f.readline()
     f.close()
 
     return name, line1, line2
@@ -92,7 +92,7 @@ def RA_DEC_from_lonlat(lat, lon):
 
 def get_satellite_altitude(position):
     """
-    input: satellites position (ASSUMING KM)
+    input: satellites positions (ASSUMING KM)
     output: altitude from earth center
     """
 
@@ -118,7 +118,7 @@ def get_visible_area_angle(position):
 
     altitude = get_satellite_altitude(position)
 
-    visibleRadius = get_visible_area_radius(altitude)
+    visibleRadius = get_visible_area_radius(position)
 
     return np.rad2deg(np.arctan(visibleRadius/altitude))
 
@@ -158,7 +158,8 @@ def angular_distance(position):
 
     # Retreive RA and DEC for both objects
     ra_sat, dec_sat = RA_DEC_from_position(position)
-    ra_obs, dec_obs = RA_DEC_from_lonlat(get_position())
+    lat, lon = get_position()
+    ra_obs, dec_obs = RA_DEC_from_lonlat(lat, lon)
 
     # Converting from degrees to radians
     ra_sat, dec_sat, ra_obs, dec_obs = np.deg2rad([ra_sat, dec_sat, ra_obs, dec_obs])
@@ -178,7 +179,6 @@ def is_observable(position):
     """
 
     angle = angular_distance(position)
-
-    visible_area_angle = get_visible_area_angle(get_satellite_altitude(position))
+    visible_area_angle = get_visible_area_angle(position)
 
     return angle < visible_area_angle

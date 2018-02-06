@@ -13,7 +13,7 @@ def main(SAT_VISIBLE=False):
     input: none
     output: none
     """
-
+    SAT_VISIBLE = False
     sat_filename = "tle_thehumanitystar.txt"  # Would need to be changeable
     print("Initializing coordinates...")
     while True:  # Loops indefinitely
@@ -22,6 +22,8 @@ def main(SAT_VISIBLE=False):
         TLE = [tle1, tle2]
         print("Following satellite...")
         while SAT_VISIBLE is False:  # Mode 1: Will switch once sat is visible
+            position = 0
+            velocity = 0
             position, velocity = sg.get_sat_posvel_curr(TLE)
             if sg.is_observable(position) and sn.is_night():
                 SAT_VISIBLE = 1
