@@ -6,12 +6,6 @@ import json  # for parsing json files
 import numpy as np
 from scipy.interpolate import interp1d as inter
 
-"""
-print(satellite.error)    # nonzero on error
-
-print(satellite.error_message)
-"""
-
 OBSERVER_ANGLE_ACCEPTABLE = 45
 LATITUDE_DEFAULT = 45.5
 LONGITUDE_DEFAULT = -73.6
@@ -25,11 +19,12 @@ def get_fromfile_TLE(filename):
     """
 
     f = open(filename, 'r')
+    name = f.read
     line1 = f.read()
     line2 = f.read()
     f.close()
 
-    return line1, line2
+    return name, line1, line2
 
 
 def get_sat_posvel_curr(TLE):
@@ -64,15 +59,33 @@ def get_position():
     return lat, lon
 
 
-def RA_DEC_from_longlat(latitude, longitude):
+def get_complete_position():
+    """
+    input: none
+    output: latitude, longitude
+    """
+
+    send_url = 'http://freegeoip.net/json'
+    r = requests.get(send_url)
+    j = json.loads(r.text)
+    lat = j['latitude']
+    lon = j['longitude']
+    city = j['city']
+    region = j['region_name']
+    time_zone = j['time_zone']
+
+    return lat, lon, city, region, time_zone
+
+
+def RA_DEC_from_lonlat(lat, lon):
     """
     input: lat long angles
     output: RA and DEC
     """
 
     ra_map = inter([-180, 180], [0, 360])
-    ra = ra_map(longitude)-180  # Needs to be mapped
-    dec = latitude
+    ra = ra_map(lon)-180  # Needs to be mapped
+    dec = lat
 
     return ra, dec
 
@@ -145,7 +158,7 @@ def angular_distance(position):
 
     # Retreive RA and DEC for both objects
     ra_sat, dec_sat = RA_DEC_from_position(position)
-    ra_obs, dec_obs = RA_DEC_from_longlat(get_position())
+    ra_obs, dec_obs = RA_DEC_from_lonlat(get_position())
 
     # Converting from degrees to radians
     ra_sat, dec_sat, ra_obs, dec_obs = np.deg2rad([ra_sat, dec_sat, ra_obs, dec_obs])
