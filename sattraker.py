@@ -3,24 +3,20 @@ from sgp4.earth_gravity import wgs72  # for gravity correction
 from sgp4.io import twoline2rv  # for reading TLE
 import requests  # for requesting json from web
 import json  # for parsing json files
+import numpy as np
 
 """
-line1 = ('1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753')
-line2 = ('2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667')
-satellite = twoline2rv(line1, line2, wgs72)
-position, velocity = satellite.propagate(2000, 6, 29, 12, 50, 19)
-
 print(satellite.error)    # nonzero on error
 
 print(satellite.error_message)
-
-print(position)
-
-print(velocity)
 """
+VIEWER_ANGLE_ACCEPTABLE = 45
+LATITUDE_DEFAULT = 45
+LONGITUDE_DEFAULT = -75
+EARTH_RADIUS_KM = 6370
 
 
-def get_TLE(filename):
+def get_fromfile_TLE(filename):
     """
     input: file with TLE orbit parameters
     output: 2 lines for processing
@@ -61,3 +57,12 @@ def get_position():
     lon = j['longitude']
 
     return lat, lon
+
+
+def get_satellite_altitude(position):
+    """
+    input: satellites position (ASSUMING KM)
+    output: altitude from ground
+    """
+
+    return np.sqrt(position[0]**2+position[1]**2+position[2]**2)-EARTH_RADIUS_KM
