@@ -1,8 +1,6 @@
 from twilio.rest import Client
 import smtplib
-# from email.MIMEMultipart import MIMEMultipart
 from email.mime.multipart import MIMEMultipart
-# from email.MIMEText import MIMEText
 from email.mime.text import MIMEText
 
 
