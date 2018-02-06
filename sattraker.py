@@ -62,7 +62,34 @@ def get_position():
 def get_satellite_altitude(position):
     """
     input: satellites position (ASSUMING KM)
-    output: altitude from ground
+    output: altitude from earth center
     """
 
-    return np.sqrt(position[0]**2+position[1]**2+position[2]**2)-EARTH_RADIUS_KM
+    return np.sqrt(position[0]**2+position[1]**2+position[2]**2)
+
+
+def get_visible_area_radius(altitude):
+    """
+    input: altitude and VIEWER_ANGLE_ACCEPTABLE
+    output: radius of visible area
+    """
+
+    return np.tan(np.deg2rad(VIEWER_ANGLE_ACCEPTABLE))*(altitude-EARTH_RADIUS_KM)
+
+
+def get_angle_from_center(visibleRadius, altitude):
+    """
+    input: visible area radius and altitude of satellite
+    output: angle of visible area from the center of the earth
+    """
+
+    return np.rad2deg(np.arctan(visibleRadius/altitude))
+
+
+def angular_distance(position):
+    """
+    input: position of the satellite
+    output: angular distance between GPS location and satellite
+    """
+
+    return
