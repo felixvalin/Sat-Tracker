@@ -5,11 +5,17 @@ import requests  # for requesting json from web
 import json  # for parsing json files
 import numpy as np
 from scipy.interpolate import interp1d as inter
+# For Exceptions
+from socket import gaierror
+from urllib3.exceptions import MaxRetryError, NewConnectionError
 
 OBSERVER_ANGLE_ACCEPTABLE = 45
 LATITUDE_DEFAULT = 45.5
-LONGITUDE_DEFAULT = -73.6
+LONGITUDE_DEFAULT = -73.5
 EARTH_RADIUS_KM = 6371
+CITY_DEFAULT = "Montreal"
+REGION_DEFAULT = "Quebec"
+DEFAULT_TIME_ZONE = "America/Toronto"
 
 
 def get_fromfile_TLE(filename):
@@ -44,19 +50,44 @@ def get_sat_posvel_curr(TLE):
     return position, velocity
 
 
-def get_position():
+def get_position(complete=False):
     """
     input: none
     output: latitude, longitude
     """
 
+    connection = True
     send_url = 'http://freegeoip.net/json'
-    r = requests.get(send_url)
-    j = json.loads(r.text)
-    lat = j['latitude']
-    lon = j['longitude']
 
-    return lat, lon
+    try:
+        r = requests.get(send_url)
+    except (gaierror, OSError, requests.exceptions.ConnectionError, MaxRetryError, NewConnectionError):  # No Internet Connection
+        # except requests.exceptions.ConnectionError:
+        connection = False
+        pass
+
+    if connection:
+        try:
+            j = json.loads(r.text)
+            lat = j['latitude']
+            lon = j['longitude']
+            city = j['city']
+            region = j['region_name']
+            time_zone = j['time_zone']
+        except json.decoder.JSONDecodeError:
+            pass
+    else:
+        lat = LATITUDE_DEFAULT
+        lon = LONGITUDE_DEFAULT
+        city = CITY_DEFAULT
+        region = REGION_DEFAULT
+        time_zone = DEFAULT_TIME_ZONE
+
+    if complete is True:
+        return lat, lon, city, region, time_zone
+
+    elif complete is False:
+        return lat, lon
 
 
 def get_complete_position():
@@ -123,13 +154,27 @@ def get_visible_area_angle(position):
     return np.rad2deg(np.arctan(visibleRadius/altitude))
 
 
+def rotation_matrix(x, y, theta):
+    theta = np.deg2rad(theta)
+    c, s = np.cos(theta), np.sin(theta)
+    initial_coord = [x, y]
+    R = [[c, -s], [s, c]]
+    final_coord = np.matmul(R, initial_coord)
+    # print(final_coord)
+    return final_coord[0], final_coord[1]
+
+
 def RA_from_position(position):
     """
     input: position
     output: right ascension
     """
+    # Apparently, the position given by wsg72 is
+    # shifted from the oringal axis...
+    rotation_angle = 192  # THIS IS FOR CALIBRATION PURPOSES..
+    x, y = rotation_matrix(position[0], position[1], rotation_angle)
 
-    return np.arctan(position[1]/position[0])
+    return np.rad2deg(np.arctan2(y, x))
 
 
 def DEC_from_position(position):
@@ -138,7 +183,7 @@ def DEC_from_position(position):
     output: declination
     """
 
-    return np.arctan(position[2]/np.hypot(position[0], position[1]))
+    return np.rad2deg(np.arctan(position[2]/np.hypot(position[0], position[1])))
 
 
 def RA_DEC_from_position(position):
