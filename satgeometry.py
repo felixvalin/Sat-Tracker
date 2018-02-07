@@ -17,6 +17,8 @@ CITY_DEFAULT = "Montreal"
 REGION_DEFAULT = "Quebec"
 DEFAULT_TIME_ZONE = "America/Toronto"
 
+ROTATION_ANGLE = 192  # THIS IS FOR CALIBRATION PURPOSES..
+
 
 def get_fromfile_TLE(filename):
     """
@@ -44,10 +46,23 @@ def get_sat_posvel_curr(TLE):
     currTime = dt.utcnow()
     position, velocity = satellite.propagate(currTime.year, currTime.month, currTime.day, currTime.hour, currTime.minute, currTime.second)
 
+    # Rotation calibration
+    position[0], position[1] = rotation_matrix(position[0], position[1], ROTATION_ANGLE)
+
     if satellite.error != 0:
         return print(satellite.error_message)
 
     return position, velocity
+
+
+def rotation_matrix(x, y, theta):
+    theta = np.deg2rad(theta)  # Convert to rad
+    c, s = np.cos(theta), np.sin(theta)  # matrix elements
+    initial_coord = [x, y]
+    R = [[c, -s], [s, c]]  # Rotation matrix
+    final_coord = np.matmul(R, initial_coord)  # Rotate
+
+    return final_coord[0], final_coord[1]
 
 
 def get_position(complete=False):
@@ -154,27 +169,13 @@ def get_visible_area_angle(position):
     return np.rad2deg(np.arctan(visibleRadius/altitude))
 
 
-def rotation_matrix(x, y, theta):
-    theta = np.deg2rad(theta)
-    c, s = np.cos(theta), np.sin(theta)
-    initial_coord = [x, y]
-    R = [[c, -s], [s, c]]
-    final_coord = np.matmul(R, initial_coord)
-    # print(final_coord)
-    return final_coord[0], final_coord[1]
-
-
 def RA_from_position(position):
     """
     input: position
     output: right ascension
     """
-    # Apparently, the position given by wsg72 is
-    # shifted from the oringal axis...
-    rotation_angle = 192  # THIS IS FOR CALIBRATION PURPOSES..
-    x, y = rotation_matrix(position[0], position[1], rotation_angle)
 
-    return np.rad2deg(np.arctan2(y, x))
+    return np.rad2deg(np.arctan2(position[1], position[0]))
 
 
 def DEC_from_position(position):
