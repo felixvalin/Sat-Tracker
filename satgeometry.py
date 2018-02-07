@@ -1,4 +1,5 @@
 from datetime import datetime as dt  # for date and time
+from datetime import timedelta as td
 from sgp4.earth_gravity import wgs72  # for gravity correction
 from sgp4.io import twoline2rv  # for reading TLE
 import requests  # for requesting json from web
@@ -16,8 +17,9 @@ EARTH_RADIUS_KM = 6371
 CITY_DEFAULT = "Montreal"
 REGION_DEFAULT = "Quebec"
 DEFAULT_TIME_ZONE = "America/Toronto"
-
-ROTATION_ANGLE = 192  # THIS IS FOR CALIBRATION PURPOSES..
+SECONDS_IN_DAY = 3600.0*24.0
+# BULLSHIT THAT'S BECAUSE YOU FORGOT TO INCLUDE EARTH'S ROTATIO
+# ROTATION_ANGLE = 192  # THIS IS FOR CALIBRATION PURPOSES..
 
 
 def get_fromfile_TLE(filename):
@@ -46,8 +48,13 @@ def get_sat_posvel_curr(TLE):
     currTime = dt.utcnow()
     position, velocity = satellite.propagate(currTime.year, currTime.month, currTime.day, currTime.hour, currTime.minute, currTime.second)
 
+    orbit_time = (dt.utcnow() - satellite.epoch).total_seconds()
+
+    rotation_angle = 360*(orbit_time/SECONDS_IN_DAY)
+
     # Rotation calibration
-    position[0], position[1] = rotation_matrix(position[0], position[1], ROTATION_ANGLE)
+    x, y = rotation_matrix(position[0], position[1], rotation_angle)
+    position = [x, y, position[2]]
 
     if satellite.error != 0:
         return print(satellite.error_message)
