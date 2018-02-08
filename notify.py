@@ -4,7 +4,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-# pswd = 
+pswd = input("Enter notifier's email password: ")
 
 
 def send_email(subject, text, toaddr):
