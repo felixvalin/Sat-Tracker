@@ -5,13 +5,13 @@ import notify
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+"""
 def update_world_map(graph, new_position):
     ra, dec = new_position
     graph.set_xdata(np.append(graph.get_xdata(), ra))
     graph.set_ydata(np.append(graph.get_ydata(), dec))
     plt.draw()
-    plt.show()
+    plt.show()"""
 
 
 def main(SAT_VISIBLE=False):
@@ -26,6 +26,7 @@ def main(SAT_VISIBLE=False):
     """
     SAT_VISIBLE = False
     sat_filename = "tle_thehumanitystar.txt"  # Would need to be changeable
+    # sat_filename = "tle_iss.txt"  # Would need to be changeable
     print("Initializing coordinates...")
     while True:  # Loops indefinitely
         # Gathers TLE information
@@ -34,8 +35,8 @@ def main(SAT_VISIBLE=False):
         # Initiate plot
         # world_map, = plt.plot([], [])
         plt.figure()
-        plt.xlim(-180, 180)
-        plt.ylim(-90, 90)
+        # plt.xlim(-180, 180)
+        # plt.ylim(-90, 90)
         print("Following satellite...")
         while SAT_VISIBLE is False:  # Mode 1: Will switch once sat is visible
             # start_time = time()

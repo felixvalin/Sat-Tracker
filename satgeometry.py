@@ -1,6 +1,6 @@
 from datetime import datetime as dt  # for date and time
-from datetime import timedelta as td
-from sgp4.earth_gravity import wgs72  # for gravity correction
+# from datetime import timedelta as td
+from sgp4.earth_gravity import wgs72, wgs72old, wgs84  # for gravity correction
 from sgp4.io import twoline2rv  # for reading TLE
 import requests  # for requesting json from web
 import json  # for parsing json files
@@ -17,7 +17,8 @@ EARTH_RADIUS_KM = 6371
 CITY_DEFAULT = "Montreal"
 REGION_DEFAULT = "Quebec"
 DEFAULT_TIME_ZONE = "America/Toronto"
-SECONDS_IN_DAY = 3600.0*24.0
+SECONDS_IN_DAY_SIDEREAL = 86164  # Sideral period!
+SECONDS_IN_DAY = 86400  # normal period!
 # BULLSHIT THAT'S BECAUSE YOU FORGOT TO INCLUDE EARTH'S ROTATIO
 # ROTATION_ANGLE = 192  # THIS IS FOR CALIBRATION PURPOSES..
 
@@ -44,13 +45,15 @@ def get_sat_posvel_curr(TLE):
     """
 
     line1, line2 = TLE
-    satellite = twoline2rv(line1, line2, wgs72)
+    satellite = twoline2rv(line1, line2, wgs84)
     currTime = dt.utcnow()
     position, velocity = satellite.propagate(currTime.year, currTime.month, currTime.day, currTime.hour, currTime.minute, currTime.second)
-
+    print(satellite.epoch)
+    # print(dt.utcnow() - satellite.epoch)
     orbit_time = (dt.utcnow() - satellite.epoch).total_seconds()
-
-    rotation_angle = 360*(orbit_time/SECONDS_IN_DAY)
+    # print(orbit_time/SECONDS_IN_DAY)  # TESTING
+    rotation_angle = 360*(orbit_time/SECONDS_IN_DAY)*(SECONDS_IN_DAY_SIDEREAL/SECONDS_IN_DAY)  # 40 degrees deviation from actual
+    rotation_angle = 0
 
     # Rotation calibration
     x, y = rotation_matrix(position[0], position[1], rotation_angle)
@@ -67,7 +70,8 @@ def rotation_matrix(x, y, theta):
     c, s = np.cos(theta), np.sin(theta)  # matrix elements
     initial_coord = [x, y]
     R = [[c, -s], [s, c]]  # Rotation matrix
-    final_coord = np.matmul(R, initial_coord)  # Rotate
+#    final_coord = np.matmul(R, initial_coord)  # Rotate
+    final_coord = np.matmul(initial_coord, R)  # Rotate
 
     return final_coord[0], final_coord[1]
 

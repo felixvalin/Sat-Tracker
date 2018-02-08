@@ -1,12 +1,14 @@
+
 from twilio.rest import Client
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# pswd = 
+
 
 def send_email(subject, text, toaddr):
     fromaddr = "felixantoinevalin@gmail.com"
-    pswd = "555987xilef"
     # toaddr = "felixantoinevalin@gmail.com"
     msg = MIMEMultipart()
     msg['From'] = fromaddr
@@ -28,7 +30,6 @@ def send_email(subject, text, toaddr):
 
 def send_simple_email(text, toaddr):
     fromaddr = "felixantoinevalin@gmail.com"
-    pswd = "555987xilef"
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
     server.login(fromaddr, pswd)
